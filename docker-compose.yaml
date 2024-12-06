@@ -4,21 +4,20 @@ services:
     image: &routerImage ghcr.io/apollographql/router:v1.55.0
     user: root
     entrypoint:
-      - "chown"
-      - "1000:1000"
-      - "/var/log/router"
+      - 'chown'
+      - '1000:1000'
+      - '/var/log/router'
     volumes:
       - router-logs:/var/log/router
   router:
     image: ghcr.io/apollographql/router:v1.55.0
     environment:
-      # Note that APOLLO_KEY and APOLLO_GRAPH_REF will be rotated.
-      - APOLLO_KEY=service:workshop-g34n8cr:VevTcL33CrNX1cl_X_9VxQ
-      - APOLLO_GRAPH_REF=workshop-g34n8cr@current
+      - APOLLO_KEY=add-your-apollo-key-here
+      - APOLLO_GRAPH_REF=add-your-graph-ref-here
     entrypoint:
-      - "/etc/router/.router/bootstrap.sh"
+      - '/etc/router/.router/bootstrap.sh'
     ports:
-      - "4000:4000"
+      - '4000:4000'
     volumes:
       - ${PWD}/router:/etc/router
       - router-logs:/var/log/router
@@ -36,24 +35,24 @@ services:
       - tempo
   accounts:
     build: ./starstuff-services/accounts
-    # ports:
-    #   - 4001:4001
+    ports:
+      - 4001:4001
   inventory:
     build: ./starstuff-services/inventory
-    # ports:
-    #   - 4004:4004
+    ports:
+      - 4004:4004
   products:
     build: ./starstuff-services/products
-    # ports:
-    #   - 4003:4003
+    ports:
+      - 4003:4003
   reviews:
     build: ./starstuff-services/reviews
-    # ports:
-    #   - 4002:4002
+    ports:
+      - 4002:4002
   subgraphs:
     image: alpine:latest
     entrypoint:
-      - "/etc/subgraphs/subgraphs.sh"
+      - '/etc/subgraphs/subgraphs.sh'
     volumes:
       - ${PWD}/subgraphs:/etc/subgraphs
       - ${PWD}/router:/etc/router:rw
@@ -64,11 +63,11 @@ services:
   code-server:
     image: codercom/code-server:latest
     ports:
-      - "8080:8080"
+      - '8080:8080'
     environment:
       - VSCODE_PROXY_URI=
     entrypoint:
-      - "/home/coder/.config/bootstrap.sh"
+      - '/home/coder/.config/bootstrap.sh'
     volumes:
       - ${PWD}/code-server/.config:/home/coder/.config
       - ${PWD}/router:/etc/router:rw
@@ -85,30 +84,30 @@ services:
   grafana:
     image: grafana/grafana-oss
     ports:
-      - "3000:3000"
+      - '3000:3000'
     volumes:
-      -  ${PWD}/grafana/grafana.ini:/etc/grafana/grafana.ini
-      -  ${PWD}/grafana/provisioning:/etc/grafana/provisioning
+      - ${PWD}/grafana/grafana.ini:/etc/grafana/grafana.ini
+      - ${PWD}/grafana/provisioning:/etc/grafana/provisioning
 
-# Dozzle is infinitely better than grafana for viewing logs, but for demo purposes grafana can be configured to watch for certain log events.
-#  dozzle:
-#    image: amir20/dozzle
-#    command:
-#      - --mode
-#      - server
-#      - --filter
-#      - label=loggable
-#      - --no-analytics
-#    ports:
-#      - "8081:8080"
-#    volumes:
-#      - /var/run/docker.sock:/var/run/docker.sock
-#    healthcheck:
-#      test: curl --fail http://localhost:8081/ || exit 1
-#      interval: 1s
-#      timeout: 1s
-#      retries: 3
-#      start_period: 60s
+  # Dozzle is infinitely better than grafana for viewing logs, but for demo purposes grafana can be configured to watch for certain log events.
+  #  dozzle:
+  #    image: amir20/dozzle
+  #    command:
+  #      - --mode
+  #      - server
+  #      - --filter
+  #      - label=loggable
+  #      - --no-analytics
+  #    ports:
+  #      - "8081:8080"
+  #    volumes:
+  #      - /var/run/docker.sock:/var/run/docker.sock
+  #    healthcheck:
+  #      test: curl --fail http://localhost:8081/ || exit 1
+  #      interval: 1s
+  #      timeout: 1s
+  #      retries: 3
+  #      start_period: 60s
 
   # Tempo runs as user 10001, and docker compose creates the volume as root.
   # As such, we need to chown the volume in order for Tempo to start correctly.
@@ -116,14 +115,14 @@ services:
     image: &tempoImage grafana/tempo:latest
     user: root
     entrypoint:
-      - "chown"
-      - "10001:10001"
-      - "/var/tempo"
+      - 'chown'
+      - '10001:10001'
+      - '/var/tempo'
     volumes:
       - tempo-data:/var/tempo
   tempo:
     image: *tempoImage
-    command: [ "-config.file=/etc/tempo/tempo.yaml" ]
+    command: ['-config.file=/etc/tempo/tempo.yaml']
     # ports:
     #   - 3200:3200
     volumes:
@@ -136,7 +135,7 @@ services:
     image: &lokiImage grafana/loki:latest
     user: root
     entrypoint:
-      - "/etc/loki/loki.sh"
+      - '/etc/loki/loki.sh'
     volumes:
       - ${PWD}/loki:/etc/loki
       - loki-data:/tmp/loki:rw
@@ -161,17 +160,16 @@ services:
     restart: always
   redis:
     image: redis:7.4
-    # ports:
-    #   - 6379:6379
+    ports:
+      - 6379:6379
   vegeta:
     image: jauderho/vegeta
     depends_on:
       - router
     volumes:
-      -  ${PWD}/vegeta:/etc/vegeta
-    command: attack -targets=/etc/vegeta/targets.http -rate=1000 -timeout 10s -duration=0 -output=/dev/null
+      - ${PWD}/vegeta:/etc/vegeta
+    command: attack -targets=/etc/vegeta/targets.http -rate=800 -timeout 10s -duration=0 -output=/dev/null
     # restart: always
-
 
 volumes:
   tempo-data:
